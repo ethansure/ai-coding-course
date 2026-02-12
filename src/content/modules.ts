@@ -998,37 +998,17 @@ Subagent B: 分析后端 API
 - 构建一个多 Agent 协作的开发流水线
 - 体验 Agent 编排的最佳实践
 
-### 📦 Starter Repos (起始代码)
+### 📦 起始代码说明
 
-为确保你能顺利动手实践，我们提供了以下起始仓库：
+每个项目都提供**完整的手动创建步骤**，无需外部依赖。你可以：
 
-| 项目 | Starter Repo | 说明 |
-|------|-------------|------|
-| Legacy 现代化 | [legacy-express-service](https://github.com/ai-coding-course/legacy-express-service) | 2018 年风格的 Express 服务 |
-| System Design | [whiteboard-design-starter](https://github.com/ai-coding-course/whiteboard-design-starter) | 设计文档模板 + 示例 |
-| Multi-Agent | [agent-pipeline-starter](https://github.com/ai-coding-course/agent-pipeline-starter) | TypeScript 项目骨架 |
+| 项目 | 类型 | 起始方式 |
+|------|------|---------|
+| Legacy 现代化 | 代码重构 | 复制下方完整代码片段 |
+| System Design | 架构设计 | 使用提供的设计模板 |
+| Multi-Agent | 代码开发 | 按步骤创建项目骨架 |
 
-**快速开始：**
-\`\`\`bash
-# 项目一：Legacy 现代化
-git clone https://github.com/ai-coding-course/legacy-express-service
-cd legacy-express-service
-npm install
-npm start  # 启动旧版服务
-
-# 项目二：System Design（纯设计，无代码）
-git clone https://github.com/ai-coding-course/whiteboard-design-starter
-cd whiteboard-design-starter
-# 查看 REQUIREMENTS.md 和 TEMPLATE.md
-
-# 项目三：Multi-Agent Pipeline
-git clone https://github.com/ai-coding-course/agent-pipeline-starter
-cd agent-pipeline-starter
-bun install
-bun run dev
-\`\`\`
-
-> 💡 **没有 GitHub 账号？** 可以直接下载 ZIP 或使用下方的代码片段手动创建项目。
+> 💡 **真实开源替代品**：如果你想用真实的 Legacy 代码练习，可以 fork [express/express-example](https://github.com/expressjs/express/tree/master/examples) 或 [kriasoft/nodejs-api-starter](https://github.com/kriasoft/nodejs-api-starter)（较老版本）。
 
 ### 准备工作
 
@@ -1056,16 +1036,7 @@ bun run dev
 
 ### 📦 起始代码
 
-**方式一：克隆 Starter Repo**
-\`\`\`bash
-git clone https://github.com/ai-coding-course/legacy-express-service
-cd legacy-express-service
-npm install && npm start
-\`\`\`
-
-**方式二：手动创建项目**
-
-如果无法访问 GitHub，可以手动创建以下文件结构：
+**手动创建项目** — 按以下步骤创建一个典型的 2018 年风格 Express 服务：
 
 \`\`\`bash
 mkdir legacy-service && cd legacy-service
@@ -1354,14 +1325,7 @@ claude
 
 ### 📦 起始代码
 
-**方式一：克隆 Starter Repo**
-\`\`\`bash
-git clone https://github.com/ai-coding-course/agent-pipeline-starter
-cd agent-pipeline-starter
-bun install && bun run dev
-\`\`\`
-
-**方式二：手动创建项目**
+**手动创建项目** — 按以下步骤搭建 Multi-Agent 开发环境：
 
 \`\`\`bash
 mkdir agent-pipeline && cd agent-pipeline
