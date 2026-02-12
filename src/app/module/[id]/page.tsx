@@ -176,58 +176,104 @@ export default function ModulePage() {
   );
 }
 
-// Simple markdown-like formatting
+// Enhanced markdown formatting with better table and code block support
 function formatContent(content: string): string {
-  return content
+  // First, protect code blocks from other transformations
+  const codeBlocks: string[] = [];
+  let processed = content.replace(/```(\w+)?\n([\s\S]*?)```/g, (_, lang, code) => {
+    const index = codeBlocks.length;
+    codeBlocks.push(`<pre class="bg-slate-900 text-slate-100 p-4 rounded-lg overflow-x-auto my-4"><code class="language-${lang || 'text'} text-sm">${escapeHtml(code.trim())}</code></pre>`);
+    return `__CODE_BLOCK_${index}__`;
+  });
+
+  // Process tables before other transformations
+  processed = processed.replace(/(\|.+\|[\r\n]+)+/g, (tableMatch) => {
+    const rows = tableMatch.trim().split('\n').filter(row => row.trim());
+    if (rows.length < 2) return tableMatch;
+    
+    let html = '<div class="overflow-x-auto my-4"><table class="min-w-full border-collapse border border-slate-300 dark:border-slate-600">';
+    
+    rows.forEach((row, rowIndex) => {
+      const cells = row.split('|').filter(c => c.trim() !== '');
+      
+      // Skip separator row (contains only dashes)
+      if (cells.every(c => /^[\s-:]+$/.test(c))) {
+        return;
+      }
+      
+      const isHeader = rowIndex === 0;
+      const cellTag = isHeader ? 'th' : 'td';
+      const cellClass = isHeader 
+        ? 'bg-slate-100 dark:bg-slate-700 font-semibold px-4 py-2 border border-slate-300 dark:border-slate-600 text-left'
+        : 'px-4 py-2 border border-slate-300 dark:border-slate-600';
+      
+      html += '<tr>';
+      cells.forEach(cell => {
+        html += `<${cellTag} class="${cellClass}">${cell.trim()}</${cellTag}>`;
+      });
+      html += '</tr>';
+    });
+    
+    html += '</table></div>';
+    return html;
+  });
+
+  // Process inline elements
+  processed = processed
     // Headers
-    .replace(/^### (.+)$/gm, '<h3>$1</h3>')
-    .replace(/^## (.+)$/gm, '<h2>$1</h2>')
-    .replace(/^# (.+)$/gm, '<h1>$1</h1>')
+    .replace(/^### (.+)$/gm, '<h3 class="text-lg font-bold mt-6 mb-3">$1</h3>')
+    .replace(/^## (.+)$/gm, '<h2 class="text-xl font-bold mt-8 mb-4">$1</h2>')
+    .replace(/^# (.+)$/gm, '<h1 class="text-2xl font-bold mt-8 mb-4">$1</h1>')
     // Bold
     .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
     // Italic
     .replace(/\*(.+?)\*/g, '<em>$1</em>')
-    // Inline code
-    .replace(/`([^`]+)`/g, '<code>$1</code>')
-    // Code blocks
-    .replace(/```(\w+)?\n([\s\S]*?)```/g, (_, lang, code) => {
-      return `<pre><code class="language-${lang || 'text'}">${escapeHtml(code.trim())}</code></pre>`;
-    })
+    // Inline code (but not inside code blocks)
+    .replace(/`([^`]+)`/g, '<code class="bg-slate-200 dark:bg-slate-700 px-1.5 py-0.5 rounded text-sm">$1</code>')
     // Blockquotes
-    .replace(/^> (.+)$/gm, '<blockquote>$1</blockquote>')
+    .replace(/^> (.+)$/gm, '<blockquote class="border-l-4 border-blue-500 pl-4 my-4 italic text-slate-600 dark:text-slate-400">$1</blockquote>')
     // Unordered lists
-    .replace(/^- (.+)$/gm, '<li>$1</li>')
+    .replace(/^- (.+)$/gm, '<li class="ml-4">$1</li>')
     // Ordered lists
-    .replace(/^\d+\. (.+)$/gm, '<li>$1</li>')
-    // Tables (basic support)
-    .replace(/\|(.+)\|/g, (match) => {
-      const cells = match.split('|').filter(c => c.trim());
-      if (cells.every(c => c.trim().match(/^-+$/))) {
-        return ''; // Skip separator row
-      }
-      const isHeader = match.includes('---');
-      const cellTag = isHeader ? 'th' : 'td';
-      return `<tr>${cells.map(c => `<${cellTag}>${c.trim()}</${cellTag}>`).join('')}</tr>`;
-    })
+    .replace(/^\d+\. (.+)$/gm, '<li class="ml-4 list-decimal">$1</li>')
     // Links
-    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>')
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener" class="text-blue-600 hover:underline">$1</a>')
     // Paragraphs (double newline)
-    .replace(/\n\n/g, '</p><p>')
-    // Wrap in paragraph
-    .replace(/^/, '<p>')
-    .replace(/$/, '</p>')
-    // Clean up empty paragraphs
-    .replace(/<p>\s*<\/p>/g, '')
-    .replace(/<p>(<h[1-3]>)/g, '$1')
+    .replace(/\n\n/g, '</p><p class="my-3">')
+    // Single newlines in content (not inside pre)
+    .replace(/\n/g, '<br/>');
+
+  // Wrap in paragraph
+  processed = '<p class="my-3">' + processed + '</p>';
+  
+  // Clean up
+  processed = processed
+    .replace(/<p class="my-3">\s*<\/p>/g, '')
+    .replace(/<p class="my-3">(<h[1-3])/g, '$1')
     .replace(/(<\/h[1-3]>)<\/p>/g, '$1')
-    .replace(/<p>(<pre>)/g, '$1')
-    .replace(/(<\/pre>)<\/p>/g, '$1')
-    .replace(/<p>(<blockquote>)/g, '$1')
+    .replace(/<p class="my-3">(<div)/g, '$1')
+    .replace(/(<\/div>)<\/p>/g, '$1')
+    .replace(/<p class="my-3">(<blockquote)/g, '$1')
     .replace(/(<\/blockquote>)<\/p>/g, '$1')
-    .replace(/<p>(<li>)/g, '<ul>$1')
+    .replace(/<p class="my-3">(<li)/g, '<ul class="list-disc my-4">$1')
     .replace(/(<\/li>)<\/p>/g, '$1</ul>')
-    .replace(/<p>(<tr>)/g, '<table>$1')
-    .replace(/(<\/tr>)<\/p>/g, '$1</table>');
+    .replace(/<\/li><br\/><li/g, '</li><li')
+    .replace(/<br\/>(<\/p>)/g, '$1')
+    .replace(/(<p class="my-3">)<br\/>/g, '$1');
+
+  // Restore code blocks
+  codeBlocks.forEach((block, index) => {
+    processed = processed.replace(`__CODE_BLOCK_${index}__`, block);
+  });
+  
+  // Clean up any remaining artifacts around code blocks
+  processed = processed
+    .replace(/<p class="my-3">(__CODE_BLOCK_\d+__)/g, '$1')
+    .replace(/(__CODE_BLOCK_\d+__)<\/p>/g, '$1')
+    .replace(/<br\/>(<pre)/g, '$1')
+    .replace(/(<\/pre>)<br\/>/g, '$1');
+
+  return processed;
 }
 
 function escapeHtml(text: string): string {

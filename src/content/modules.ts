@@ -998,11 +998,43 @@ Subagent B: 分析后端 API
 - 构建一个多 Agent 协作的开发流水线
 - 体验 Agent 编排的最佳实践
 
+### 📦 Starter Repos (起始代码)
+
+为确保你能顺利动手实践，我们提供了以下起始仓库：
+
+| 项目 | Starter Repo | 说明 |
+|------|-------------|------|
+| Legacy 现代化 | [legacy-express-service](https://github.com/ai-coding-course/legacy-express-service) | 2018 年风格的 Express 服务 |
+| System Design | [whiteboard-design-starter](https://github.com/ai-coding-course/whiteboard-design-starter) | 设计文档模板 + 示例 |
+| Multi-Agent | [agent-pipeline-starter](https://github.com/ai-coding-course/agent-pipeline-starter) | TypeScript 项目骨架 |
+
+**快速开始：**
+\`\`\`bash
+# 项目一：Legacy 现代化
+git clone https://github.com/ai-coding-course/legacy-express-service
+cd legacy-express-service
+npm install
+npm start  # 启动旧版服务
+
+# 项目二：System Design（纯设计，无代码）
+git clone https://github.com/ai-coding-course/whiteboard-design-starter
+cd whiteboard-design-starter
+# 查看 REQUIREMENTS.md 和 TEMPLATE.md
+
+# 项目三：Multi-Agent Pipeline
+git clone https://github.com/ai-coding-course/agent-pipeline-starter
+cd agent-pipeline-starter
+bun install
+bun run dev
+\`\`\`
+
+> 💡 **没有 GitHub 账号？** 可以直接下载 ZIP 或使用下方的代码片段手动创建项目。
+
 ### 准备工作
 
 确保你已经：
 - 安装并配置好 Claude Code
-- 准备一个 GitHub 账号
+- 准备一个 GitHub 账号（可选，也可用代码片段）
 - 有至少 2-3 小时的连续时间
 `
       },
@@ -1021,6 +1053,100 @@ Subagent B: 分析后端 API
 - 文档过时
 
 目标：迁移到 Fastify + TypeScript + 现代最佳实践
+
+### 📦 起始代码
+
+**方式一：克隆 Starter Repo**
+\`\`\`bash
+git clone https://github.com/ai-coding-course/legacy-express-service
+cd legacy-express-service
+npm install && npm start
+\`\`\`
+
+**方式二：手动创建项目**
+
+如果无法访问 GitHub，可以手动创建以下文件结构：
+
+\`\`\`bash
+mkdir legacy-service && cd legacy-service
+npm init -y
+npm install express body-parser mongoose
+\`\`\`
+
+**package.json:**
+\`\`\`json
+{
+  "name": "legacy-user-service",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "express": "^4.17.1",
+    "body-parser": "^1.19.0"
+  }
+}
+\`\`\`
+
+**index.js (典型 2018 风格):**
+\`\`\`javascript
+var express = require('express');
+var bodyParser = require('body-parser');
+
+var app = express();
+app.use(bodyParser.json());
+
+// 模拟数据库
+var users = [
+  { id: 1, name: 'Alice', email: 'alice@example.com' },
+  { id: 2, name: 'Bob', email: 'bob@example.com' }
+];
+
+// GET all users (callback style)
+app.get('/api/users', function(req, res, next) {
+  setTimeout(function() {
+    res.json({ success: true, data: users });
+  }, 100);
+});
+
+// GET user by ID
+app.get('/api/users/:id', function(req, res, next) {
+  var id = parseInt(req.params.id);
+  var user = users.find(function(u) { return u.id === id; });
+  if (!user) {
+    return res.status(404).json({ success: false, error: 'User not found' });
+  }
+  res.json({ success: true, data: user });
+});
+
+// POST create user (no validation)
+app.post('/api/users', function(req, res, next) {
+  var newUser = {
+    id: users.length + 1,
+    name: req.body.name,
+    email: req.body.email
+  };
+  users.push(newUser);
+  res.status(201).json({ success: true, data: newUser });
+});
+
+// Error handler (basic)
+app.use(function(err, req, res, next) {
+  console.error(err);
+  res.status(500).json({ success: false, error: 'Internal error' });
+});
+
+var PORT = process.env.PORT || 3000;
+app.listen(PORT, function() {
+  console.log('Server running on port ' + PORT);
+});
+\`\`\`
+
+验证启动成功：
+\`\`\`bash
+npm start
+# 访问 http://localhost:3000/api/users
+\`\`\`
 
 ### 第一阶段：代码考古 (30min)
 
@@ -1225,6 +1351,138 @@ claude
 - Agent 3: 开发者
 - Agent 4: 测试工程师
 - Agent 5: 文档工程师
+
+### 📦 起始代码
+
+**方式一：克隆 Starter Repo**
+\`\`\`bash
+git clone https://github.com/ai-coding-course/agent-pipeline-starter
+cd agent-pipeline-starter
+bun install && bun run dev
+\`\`\`
+
+**方式二：手动创建项目**
+
+\`\`\`bash
+mkdir agent-pipeline && cd agent-pipeline
+bun init -y
+bun add @anthropic-ai/sdk zod
+\`\`\`
+
+**package.json:**
+\`\`\`json
+{
+  "name": "agent-pipeline",
+  "type": "module",
+  "scripts": {
+    "dev": "bun run src/index.ts"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.30.0",
+    "zod": "^3.22.0"
+  }
+}
+\`\`\`
+
+**src/types.ts:**
+\`\`\`typescript
+export interface Task {
+  id: string;
+  type: 'requirement' | 'design' | 'code' | 'test' | 'doc';
+  input: unknown;
+  dependencies: string[];
+  assignedAgent: string;
+  status: 'pending' | 'running' | 'completed' | 'failed';
+  output?: unknown;
+}
+
+export interface AgentEvent {
+  type: 'output' | 'query' | 'change';
+  fromAgent: string;
+  toAgent?: string;
+  payload: unknown;
+}
+
+export interface Agent {
+  id: string;
+  name: string;
+  systemPrompt: string;
+  execute: (input: unknown) => Promise<unknown>;
+}
+\`\`\`
+
+**src/agents/base.ts:**
+\`\`\`typescript
+import Anthropic from '@anthropic-ai/sdk';
+import type { Agent } from '../types';
+
+const client = new Anthropic();
+
+export function createAgent(
+  id: string,
+  name: string,
+  systemPrompt: string
+): Agent {
+  return {
+    id,
+    name,
+    systemPrompt,
+    async execute(input: unknown): Promise<unknown> {
+      const response = await client.messages.create({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 4096,
+        system: systemPrompt,
+        messages: [{ role: 'user', content: JSON.stringify(input) }]
+      });
+      
+      const textBlock = response.content.find(b => b.type === 'text');
+      return textBlock ? JSON.parse(textBlock.text) : null;
+    }
+  };
+}
+\`\`\`
+
+**src/index.ts:**
+\`\`\`typescript
+import { createAgent } from './agents/base';
+import type { Task } from './types';
+
+// 创建 Agent 实例
+const requirementAgent = createAgent(
+  'requirement-agent',
+  'Requirement Analyst',
+  \`你是一个需求分析师。接收用户需求，输出结构化的需求文档。
+输出格式：{ "features": [...], "acceptance_criteria": [...] }\`
+);
+
+const architectAgent = createAgent(
+  'architect-agent', 
+  'Architect',
+  \`你是一个软件架构师。接收需求文档，输出架构设计。
+输出格式：{ "components": [...], "data_flow": [...], "tech_stack": [...] }\`
+);
+
+// 示例运行
+async function main() {
+  const userRequest = "开发一个简单的 Todo API：支持 CRUD 操作";
+  
+  console.log('📝 Processing requirement...');
+  const requirements = await requirementAgent.execute({ request: userRequest });
+  console.log('Requirements:', requirements);
+  
+  console.log('🏗️ Designing architecture...');  
+  const design = await architectAgent.execute(requirements);
+  console.log('Design:', design);
+}
+
+main().catch(console.error);
+\`\`\`
+
+验证环境：
+\`\`\`bash
+export ANTHROPIC_API_KEY=your-key
+bun run dev
+\`\`\`
 
 ### 架构概览
 
@@ -2683,136 +2941,141 @@ Context Usage:
       },
       {
         id: "source-reading",
-        title: "源码阅读指南",
+        title: "设计原则分析",
         offline: true,
         content: `
-## ✈️ Claude Code 源码阅读指南
+## ✈️ Claude Code 设计原则分析
 
-### 准备工作
+> ⚠️ **重要说明**：Claude Code 并非开源项目。本节内容基于 Anthropic 官方博客、Pragmatic Engineer 深度报道、以及公开的技术分享整理，旨在帮助理解其设计理念。
 
-Claude Code 是部分开源的，可以在 GitHub 上找到部分源码：
+### 信息来源
+
+本节分析主要基于以下公开资料：
+
+1. **Pragmatic Engineer 深度报道** (2025年)
+   - 对 Claude Code 团队的独家采访
+   - Boris Cherny 等核心工程师的技术分享
+   
+2. **Anthropic 官方文档**
+   - Claude Code 使用指南
+   - MCP (Model Context Protocol) 规范
+
+3. **技术演讲和播客**
+   - Latent Space 播客
+   - 各类技术会议分享
+
+### 推测的架构模式
+
+基于公开信息，我们可以推测 Claude Code 的大致架构：
+
+\`\`\`
+┌─────────────────────────────────────────────────────────────┐
+│                     Claude Code CLI                          │
+├─────────────────────────────────────────────────────────────┤
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐      │
+│  │     UI       │  │   Tools      │  │  Permissions │      │
+│  │ (React/Ink)  │  │   System     │  │   System     │      │
+│  └──────────────┘  └──────────────┘  └──────────────┘      │
+│                                                              │
+│  ┌──────────────────────────────────────────────────────┐  │
+│  │                   Context Manager                      │  │
+│  └──────────────────────────────────────────────────────┘  │
+├─────────────────────────────────────────────────────────────┤
+│                      Claude API                              │
+└─────────────────────────────────────────────────────────────┘
+\`\`\`
+
+### 核心设计原则（来自官方采访）
+
+**1. "On Distribution" 原则**
+
+> "我们选择模型已经擅长的技术栈。TypeScript 和 React 是模型非常熟悉的。"
+> — Boris Cherny, Claude Code 创始工程师 (Pragmatic Engineer)
+
+**2. 最小化客户端逻辑**
+
+> "每次新模型发布，我们都删代码。Claude 4.0 发布时删了一半的 system prompt。"
+> — Pragmatic Engineer 报道
+
+**3. 简单优先**
+
+> "每个设计决策，我们几乎都选最简单的方案。本地运行最简单。"
+> — 官方技术分享
+
+### 学习替代方案：Aider (完全开源)
+
+如果你想深入研究 AI Coding 工具的实现，推荐学习 **Aider** — 一个完全开源的替代品：
 
 \`\`\`bash
-# 克隆仓库
-git clone https://github.com/anthropics/claude-code
+# 克隆 Aider 源码
+git clone https://github.com/paul-gauthier/aider
 
-# 安装依赖
-cd claude-code
-bun install
+# 探索目录结构
+cd aider
+ls -la aider/
 \`\`\`
 
-### 目录结构
-
+**Aider 核心模块**
 \`\`\`
-claude-code/
-├── src/
-│   ├── cli/           # 命令行入口
-│   ├── ui/            # React/Ink UI 组件
-│   ├── tools/         # Tool 实现
-│   ├── context/       # 上下文管理
-│   ├── permissions/   # 权限系统
-│   ├── mcp/           # MCP 客户端
-│   └── utils/         # 工具函数
-├── docs/              # 文档
-└── tests/             # 测试
+aider/
+├── coders/          # 不同的编码策略
+├── commands/        # 用户命令处理
+├── io/              # 输入输出管理
+├── models/          # 模型适配层
+├── repo/            # Git 仓库操作
+└── scrape/          # 代码分析
 \`\`\`
 
-### 核心文件解读
+**为什么学习 Aider**
+- 完全开源 (Apache 2.0)
+- 架构清晰，文档完善
+- 支持多种模型
+- 活跃的社区
 
-**1. CLI 入口 (src/cli/index.ts)**
+### 实践建议
 
-\`\`\`typescript
-// 主入口逻辑
-async function main() {
-  // 解析命令行参数
-  const args = parseArgs(process.argv);
-  
-  // 初始化上下文
-  const context = await initContext(args);
-  
-  // 加载配置
-  const config = await loadConfig();
-  
-  // 启动 UI
-  const app = renderApp(context, config);
-  
-  // 主循环
-  await runMainLoop(app, context);
-}
+**1. 对比学习法**
+
+\`\`\`markdown
+使用 Claude Code 和 Aider 处理同一任务，对比：
+- 响应速度
+- 代码质量
+- 交互体验
+- 上下文管理方式
 \`\`\`
 
-**2. Tool 注册 (src/tools/registry.ts)**
+**2. 关注设计决策而非实现细节**
 
-\`\`\`typescript
-// Tool 注册机制
-const toolRegistry = new Map<string, Tool>();
+作为架构师，更重要的是理解"为什么这样设计"：
+- 为什么选择本地运行而非沙箱？
+- 为什么最小化 system prompt？
+- 权限系统如何平衡安全和便利？
 
-function registerTool(tool: Tool) {
-  toolRegistry.set(tool.name, tool);
-}
+**3. 追踪官方更新**
 
-// 内置 tools
-registerTool(readFileTool);
-registerTool(writeFileTool);
-registerTool(executeCommandTool);
-registerTool(searchFilesTool);
-\`\`\`
+- 关注 Anthropic 博客
+- 订阅 Pragmatic Engineer
+- 参与社区讨论
 
-**3. 权限系统 (src/permissions/check.ts)**
+### 调试技巧（通用）
 
-\`\`\`typescript
-// 权限检查逻辑
-async function checkPermission(
-  tool: Tool, 
-  input: any
-): Promise<PermissionResult> {
-  // 检查是否已授权
-  if (isAllowed(tool, input)) {
-    return { allowed: true };
-  }
-  
-  // 需要用户确认
-  const userDecision = await promptUser(tool, input);
-  
-  if (userDecision.remember) {
-    savePermission(tool, input, userDecision.allowed);
-  }
-  
-  return { allowed: userDecision.allowed };
-}
-\`\`\`
-
-### 学习路径建议
-
-\`\`\`
-第一阶段: 理解整体流程
-├── 阅读 CLI 入口
-├── 跟踪一次完整的对话流程
-└── 理解 Tool 调用链
-
-第二阶段: 深入核心模块
-├── Context 管理逻辑
-├── Permission 系统
-└── MCP 客户端实现
-
-第三阶段: UI 和交互
-├── Ink 组件理解
-├── 状态管理
-└── 用户输入处理
-\`\`\`
-
-### 调试技巧
+虽然无法直接阅读 Claude Code 源码，但可以通过以下方式理解其行为：
 
 \`\`\`bash
-# 开启详细日志
-DEBUG=claude:* claude
+# 观察 API 调用（使用代理）
+export HTTPS_PROXY=http://localhost:8080
+claude
 
-# 查看 API 调用
-DEBUG=claude:api claude
+# 查看详细输出
+claude --verbose
 
-# 查看 Tool 执行
-DEBUG=claude:tools claude
+# 分析 token 使用
+claude --debug
 \`\`\`
+
+---
+
+**本节要点**：Claude Code 是闭源产品，但通过官方分享和开源替代品（如 Aider），我们仍能学习 AI Coding 工具的核心设计原则。重要的是理解设计哲学，而非具体代码。
 `
       },
       {
